@@ -799,6 +799,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       }
     }
 
+    @Override
+    public void onReceivedClientCertRequest(
+      final WebView webView,
+      final ClientCertRequest request) {
+      this.onReceivedError(webView, 0, "onReceivedClientCertRequest not implemented", request.getHost())
+      request.cancel();
+      super.onReceivedClientCertRequest(webView, request);
+    }
+
     protected void emitFinishEvent(WebView webView, String url) {
       dispatchEvent(
         webView,
