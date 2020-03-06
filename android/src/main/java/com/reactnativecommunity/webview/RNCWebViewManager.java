@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
+import android.webkit.ClientCertRequest;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -797,6 +798,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           webView,
           new TopHttpErrorEvent(webView.getId(), eventData));
       }
+    }
+
+    @Override
+    public void onReceivedClientCertRequest(
+      final WebView webView,
+      final ClientCertRequest request) {
+      this.onReceivedError(webView, 0, "onReceivedClientCertRequest not implemented", request.getHost())
+      request.cancel();
+      super.onReceivedClientCertRequest(webView, request);
     }
 
     protected void emitFinishEvent(WebView webView, String url) {
