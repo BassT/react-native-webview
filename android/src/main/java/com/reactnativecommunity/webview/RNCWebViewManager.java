@@ -816,7 +816,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
       int code = error.getPrimaryError();
       String failingUrl = error.getUrl();
-      String description = error.getCertificate().getX509Certificate().getIssuerX500Principal().toString();
+      String description = "";
 
       // https://developer.android.com/reference/android/net/http/SslError.html
       switch (code) {
@@ -839,7 +839,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           description = "The certificate is not yet valid";
           break;
         case SslError.SSL_UNTRUSTED:
-          description = "The certificate authority is not trusted";
+          description = "The certificate authority is not trusted: " + error.getCertificate().getX509Certificate().getIssuerX500Principal().toString();
           break;
         default: 
           description = "Unknown SSL Error";
