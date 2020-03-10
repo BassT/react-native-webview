@@ -847,7 +847,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       }
 
       this.onReceivedError(
-        webView,
+        view,
         code,
         description,
         failingUrl
