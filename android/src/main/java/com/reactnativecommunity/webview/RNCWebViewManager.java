@@ -816,7 +816,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
       int code = error.getPrimaryError();
       String failingUrl = error.getUrl();
-      String description = "";
+      String description = error.getCertificate().getX509Certificate().getIssuerX500Principal().toString();
 
       // https://developer.android.com/reference/android/net/http/SslError.html
       switch (code) {
