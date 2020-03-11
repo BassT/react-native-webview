@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.Manifest;
+import android.net.http.SslCertificate;
 import android.net.http.SslError;
 import android.net.Uri;
 import android.os.Build;
@@ -72,9 +73,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -839,7 +842,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           description = "The certificate is not yet valid";
           break;
         case SslError.SSL_UNTRUSTED:
-          description = "The certificate authority is not trusted: " + error.getCertificate().getX509Certificate().getIssuerX500Principal().toString();
+          SslCertificate cert = error.getCertificate();
+          String subjectDN = cert.getIssuedTo().getDName();
+          Field f = cert.getClass().getDeclaredField("mX509Certificate");
+          f.setAccessible(true);
+          X509Certificate x509cert = (X509Certificate)f.get(cert);
+          description = "The certificate authority is not trusted. subjectDN=" + subjectDN + " issuerX500Principal=" + x509cert.getIssuerX500Principal().toString();
           break;
         default: 
           description = "Unknown SSL Error";
