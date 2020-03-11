@@ -73,11 +73,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -844,10 +842,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         case SslError.SSL_UNTRUSTED:
           SslCertificate cert = error.getCertificate();
           String subjectDN = cert.getIssuedTo().getDName();
-          Field f = cert.getClass().getDeclaredField("mX509Certificate");
-          f.setAccessible(true);
-          X509Certificate x509cert = (X509Certificate)f.get(cert);
-          description = "The certificate authority is not trusted. subjectDN=" + subjectDN + " issuerX500Principal=" + x509cert.getIssuerX500Principal().toString();
+          description = "The certificate authority is not trusted. subjectDN=" + subjectDN;
           break;
         default: 
           description = "Unknown SSL Error";
