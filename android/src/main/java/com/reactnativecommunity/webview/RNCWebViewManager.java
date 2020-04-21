@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.webkit.ClientCertRequest;
-import android.webkit.ClientCertRequestHandler;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -1235,11 +1234,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
 final class KeyChainLookup extends AsyncTask<Void, Void, Void> {
     private final Context mContext;
-    private final ClientCertRequestHandler mHandler;
+    private final ClientCertRequest mRequest;
     private final String mAlias;
-    KeyChainLookup(Context context, ClientCertRequestHandler handler, String alias) {
+    KeyChainLookup(Context context, ClientCertRequest request, String alias) {
         mContext = context.getApplicationContext();
-        mHandler = handler;
+        mRequest = request;
         mAlias = alias;
     }
     @Override protected Void doInBackground(Void... params) {
@@ -1249,13 +1248,13 @@ final class KeyChainLookup extends AsyncTask<Void, Void, Void> {
             privateKey = KeyChain.getPrivateKey(mContext, mAlias);
             certificateChain = KeyChain.getCertificateChain(mContext, mAlias);
         } catch (InterruptedException e) {
-            mHandler.ignore();
+            mRequest.ignore();
             return null;
         } catch (KeyChainException e) {
-            mHandler.ignore();
+            mRequest.ignore();
             return null;
         }
-        mHandler.proceed(privateKey, certificateChain);
+        mRequest.proceed(privateKey, certificateChain);
         return null;
     }
 }
