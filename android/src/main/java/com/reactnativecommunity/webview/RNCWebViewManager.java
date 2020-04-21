@@ -2,6 +2,7 @@ package com.reactnativecommunity.webview;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
@@ -807,7 +808,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     public void onReceivedClientCertRequest(
       final WebView view,
       final ClientCertRequest request) {
-      this.onReceivedError(view, 0, "onReceivedClientCertRequest not implemented", request.getHost());
+      ReactContext reactContext = (ReactContext) view.getContext();
+      Activity activity = reactContext.getCurrentActivity();
+      this.onReceivedError(view, 0, "onReceivedClientCertRequest: " + activity.toString(), request.getHost());
       request.cancel();
     }
 
