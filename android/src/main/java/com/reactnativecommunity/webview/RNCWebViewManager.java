@@ -14,10 +14,14 @@ import android.Manifest;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
+import android.security.KeyChainException;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -25,6 +29,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.webkit.ClientCertRequest;
+import android.webkit.ClientCertRequestHandler;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -77,6 +82,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -810,8 +817,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       final ClientCertRequest request) {
       ReactContext reactContext = (ReactContext) view.getContext();
       Activity activity = reactContext.getCurrentActivity();
-      this.onReceivedError(view, 0, "onReceivedClientCertRequest: " + activity.toString(), request.getHost());
-      request.cancel();
+      KeyChain.choosePrivateKeyAlias(
+        reactContext.getCurrentActivity(), new KeyChainAliasCallback() {
+          @Override public void alias(String alias) {
+              if (alias == null) {
+                  request.cancel();
+                  return;
+              }
+              new KeyChainLookup(reactContext, request, alias).execute();
+          }
+        }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
     }
 
     @Override
@@ -1217,3 +1232,31 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
   }
 }
+
+final class KeyChainLookup extends AsyncTask<Void, Void, Void> {
+    private final Context mContext;
+    private final ClientCertRequestHandler mHandler;
+    private final String mAlias;
+    KeyChainLookup(Context context, ClientCertRequestHandler handler, String alias) {
+        mContext = context.getApplicationContext();
+        mHandler = handler;
+        mAlias = alias;
+    }
+    @Override protected Void doInBackground(Void... params) {
+        PrivateKey privateKey;
+        X509Certificate[] certificateChain;
+        try {
+            privateKey = KeyChain.getPrivateKey(mContext, mAlias);
+            certificateChain = KeyChain.getCertificateChain(mContext, mAlias);
+        } catch (InterruptedException e) {
+            mHandler.ignore();
+            return null;
+        } catch (KeyChainException e) {
+            mHandler.ignore();
+            return null;
+        }
+        mHandler.proceed(privateKey, certificateChain);
+        return null;
+    }
+}
+
